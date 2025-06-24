@@ -1,0 +1,1247 @@
+Route::get('/mycompany', function () {
+    return 'contact';
+})->name('company.contact');
+Route::get('/pr', function () {
+    return 'pro';
+});
+Route::get('/u/{nm} ', function ($nm) {
+    return $nm;
+})->whereIn('nm',['as','dsi']);
+Route::get('/u/{nm}/{i} ', function ($nm,$i) {
+    return $nm;
+})->where(['nm'=> '[A-Za-z0-9]+','i'=>'[0-9]+']);
+
+Route::view('/','welcome');
+
+console.log($('meta[name="csrf-token"]').attr('content'))
+        $.post('/post', function (data) {
+            console.log(data)
+--------------------------------------------------------------------------------------------------------
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+Category:<br>
+<h2>Store Method</h2>
+<form action="/categories" method="post">
+    @csrf
+    <button type="submit">Submit</button>
+</form>
+
+<hr>
+<h2>SHOW METHOD</h2>
+<a href="/categories/1">Show</a>
+
+<hr>
+<h2>EDIT METHOD</h2>
+<a href="/categories/1/edit">Edit</a>
+
+<hr>
+<h2>Update METHOD</h2>
+<form action="/categories/1" method="post">
+    @csrf
+    @method('patch')
+    {{-- The above line is equivalent to the following line --}}
+    {{--    <input type="hidden" name="_method" value="put">--}}
+    <button type="submit">Update</button>
+</form>
+
+<hr>
+<h2>DELETE METHOD</h2>
+<form action="/categories/1" method="post">
+    @csrf
+    @method('DELETE')
+    {{-- The above line is equivalent to the following line --}}
+    {{--    <input type="hidden" name="_method" value="DELETE">--}}
+    <button type="submit">DELETE</button>
+</form>
+</body>
+</html>
+
+--------------------------------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Simple CSRF Form</title>
+</head>
+<body>
+<form id="form" action="/post" method="post">
+    <label for="email">Email:</label>
+    <input type="email" name="email">
+    <input type="submit">
+</form>
+<script>
+    $(document).ready(function () {
+        $('#form').submit(function (e) {
+            e.preventDefault();
+        })
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        })
+
+        $.ajax({
+            type: "POST",
+            url: "/post",
+            data: {},
+            success: function (data) {
+                console.log(data)
+            }
+        })
+    });
+</script>
+</body>
+</html>
+
+<a href="/categories/1/edit">Edit</a>
+
+============================================================================================================
+=============================================================================================================
+Route::get('/', function () {
+    return view('welcome');
+});
+Route::get('/user', [UsersController::class, 'show']);
+
+Route::resources([
+    'categories' => CategoriesController::class,
+    "posts" => PostsController::class,]);
+
+Route::get('/dashboard', function () {
+    return view('page/dash');
+});
+
+Route::get('/', [PostsController::class, 'index']);
+
+--------------------------------------------------------------------------------------------------------
+Route::resource('categories', CategoriesController::class)->only(['index', 'show']);
+Route::resource('categories', CategoriesController::class)->except([
+    'create', 'edit', 'update', 'destroy']);
+
+Route::apiResource('posts', PostsController::class);
+Route::apiResources([
+    'posts' => PostsController::class,
+    "categories" => CategoriesController::class]);
+
+--------------------------------------------------------------------------------------------------------
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+    <?php
+
+    use App\Http\Controllers\PostsController;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Route;
+
+
+    Route::get('/', function (Request $request) {
+        return $request->host();
+        return $request->getHttpHost();
+        return $request->schemeAndHttpHost();
+        if ($request->method('DELE')) {
+            return "TRUE";
+        }
+        return "FALSE";
+        return $request->ips();
+        return $request->getClientIps();
+    });
+
+    Route::resource('/categories', CategoriesController::class)->parameters([
+        'categories' => 'category_id']);
+
+    Route::get('/dashboard', function () {
+        return view('page/dash');
+    });
+
+    Route::get('/', [PostsController::class, 'index']);
+    Route::patch("/posts/{id}", [PostsController::class, 'update']);
+    Route::get("/posts/path", [PostsController::class, 'the_path'])->name('posts.path');
+============================================================================================================
+============================================================================================================
+Sec-09:
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+
+Route::get('/', function (Request $request) {
+    $data = $request->all();
+    return dd($data);
+});
+Route::get('/', function (Request $request) {
+    $data = $request->collect();
+    return $data->get('name');
+    return $data->count();
+});
+Route::get('/', function (Request $request) {
+    return view('welcome');
+});
+Route::get('/data', function (Request $request) {
+    $inputs = $request->mergeIfMissing(["email" => "aot@gmail.com"]);
+    dd($request->all());
+
+});
+Route::post('/colors', function (Request $request) {
+    dd($request->input("colors", "rainbow"));
+});
+Route::post('/customs', function (Request $request) {
+    $inputs = $request->only(["email", "checkbox"]);
+    $inputs = $request->except("email");
+    $inputs = $request->only("email", "username");
+    dd($inputs);
+});
+Route::post('/customs', function (Request $request) {
+    return $request->query("name", "Hassan");
+});
+Route::post('/date', function (Request $request) {
+    $obj = $request->date("my_date");
+    return $obj->diffForHumans();
+    return $request->input("my_date");
+    return $request->mযy_date;
+    if ($request->has("email")) {
+        return "has email";
+    }
+    if ($request->hasAny("email")) {
+        return "value is present";
+    }
+
+});
+
+Route::get('/dashboard', function () {
+    return view('page/dash');
+});
+
+// \\?name=aotmick&id=1&status=active&role=admin
+// \\/data/?checkbox=on&id=1&email=a@g.c
+=====================================================
+<div class="container">
+    <div class="col-4">
+        <form method="post" action="/customs">
+            @csrf
+            <div class="mb-3 mt-4">
+                <label for="exampleInputEmail1" class="form-label">Email address</label>
+                <input name="email" type="email" class="form-control" id="exampleInputEmail1"
+                       aria-describedby="emailHelp">
+                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label">Password</label>
+                <input name="password" type="password" class="form-control" id="exampleInputPassword1">
+            </div>
+            <div class="mb-3 form-check">
+                <input name="checkbox" type="checkbox" class="form-check-input" id="exampleCheck1">
+                <label class="form-check-label" for="exampleCheck1">Check me out</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+=============================================================================================================
+============================================================================================================
+Section-10:
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
+
+
+Route::get('/', function (Request $request) {
+    dd($request);
+    return $request->cookie("laravel_session");
+    $request->old("email");
+    return view('welcome');
+})->name("home");
+
+
+Route::post('/flash', function (Request $request) {
+    dd($request->input("colors", "rainbow"));
+    $request->flashOnly("username");
+    return "Flash";
+});
+Route::post('/flash', function (Request $request) {
+    $request->route("home")->withInput();
+    return back()->withInput();
+});
+
+
+Route::get('/show-session', function () {
+    $sessionPath = storage_path('framework/sessions/IqRIJLqLwHyP6TYtLoWAP4BTttKW4EUnRB7z9Cpx');
+    $serialized = File::get($sessionPath);
+    $data = unserialize($serialized);
+
+    return view('session-info', ['session' => $data]);
+});
+===================================================================
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+<h2>Welcome to Laravel 10 with Docker</h2>
+<form action="/flash" method="post">
+    @csrf
+    <input type="email" name="email" placeholder="Your Email" value="{{old('email')}}">
+    <input type="text" name="username" placeholder="Your UserName" value="{{old('username')}}">
+    <button type="submit">Submit</button>
+</form>
+<br>
+{{old('email')}}<br>
+<a href='/show-session' target="_blank">Show Session</a>
+</body>
+</html>
+=============================================================================================================
+=============================================================================================================
+Section-11:
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+
+Route::get('/', function (Request $request) {
+
+    return view('welcome');
+////    return response("hello there!", 200)
+////        ->header("Content-Type", "text/plain")
+////        ->header("Header-1", "this is Header-1")
+////        ->header("Header-2", "this is Header-2");
+//    return response("with many headers", 200)->withHeaders([
+//        "Content-Type" => "text/plain",
+//        "Header-1" => "this is Header-1",
+//        "Header-2" => "this is Header-2",
+//    ]);
+})->name("home");
+Route::middleware('cache.headers:public;max_age=86200;etag')->group(function () {
+    Route::get('/dashboard', function () {
+        $user = "aot has";
+        $cookie = cookie('user', $user, 1);
+        return response("Dashboard ");
+//        return view('page/dash');
+    });
+    Route::get('/posts', function (Request $request) {
+
+        return "Welcome to posts " . $request->cookie('user');
+    });
+});
+Route::get('/dashboard', function (Request $request) {
+    return view('page/dash');
+});
+-------------------------------------------------------------
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+<h2>Welcome to Laravel 10 with Docker</h2>
+<form action="/flash" method="post">
+    @csrf
+    <input type="email" name="email" placeholder="Your Email" value="{{old('email')}}">
+    <input type="text" name="username" placeholder="Your UserName" value="{{old('username')}}">
+    <button type="submit">Submit</button>
+</form>
+<br>
+{{old('email')}}<br>
+<a href='/show-session' target="_blank">Show Session</a>
+<a href="/dashboard">Go to Dashboard</a>
+</body>
+</html>
+
+=============================================================================================================
+=============================================================================================================
+Section 12:
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+
+Route::get('/', function () {
+    return redirect("dashboard")->with("user", "admin");
+    return view('welcome');
+    return redirect()->action([DashboardController::class, "index"], ["id" => 1]);
+})->name("home");
+
+
+Route::get('/dashboard', [DashboardController::class, "index"])->name("dashboard");
+
+Route::get("/json", function () {
+    return response()->json(["name" => "ariyan", "role" => "admin"]);
+});
+
+Route::get('/dashboard', [DashboardController::class, "show"])->name("dashboard");
+
+Route::get('/login', function ( ) {
+    return redirect()->route('home');
+});
+
+Route::get('/data', function ( ) {
+    return $->query("id");
+})->name("data");
+Route::get('/dashboard', function ( ) {
+    return redirect()->route('data', ["id" => 2]);
+});
+-------------------------------------------------------------------------------------
+<h1 class="text-center mt-5">Welcome to the Laravel Application</h1>
+@vite("resources/js/app.js")
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // console.log('DOM fully loaded and parsed');
+        axios.get('/json').then(function (data) {
+            console.log(data.data.name);
+        })
+    });
+</script>
+
+@if (session('user'))
+    <div class="alert alert-success">
+        <h1>
+            Welcome, {{ session('user') }}
+        </h1>
+    </div>
+@endif
+<a href="/dashboard">Go to Dashboard</a>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous">
+
+</script>
+-------------------------------------------------------------------------------------
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class DashboardController extends Controller
+{
+    public function index(Request $request): array|string|null
+    {
+        return view('page/dashboard');
+        return $request->query("id");
+    }
+
+
+    public function show(): array|string|null
+    {
+        return view('page/dashboard');
+        return view("welcome");
+    }
+}
+
+=============================================================================================================
+=============================================================================================================
+Section 13:
+ public function boot(): void
+    {
+        view()->composer(['dashboard', 'user.profile'], function ($view) {
+            dd($view);
+            $view->with('user', new User("ariyan", "ariyan@gmail.com"));
+        });
+
+        view()->composer('user.profile', function ($view) {
+            dd($view);
+            $view->with('user', new User("ariyan", "ariyan@gmail.com"));
+        });
+
+        $user = new User('ariyan', 'ariyan@gmail.com');
+        View::share(["user" => $user]);
+    }
+-------------------------------------------------------------------------------------
+class User
+{
+    public $username;
+    public $email;
+
+    public function __construct($username, $email)
+    {
+        $this->username = $username;
+        $this->email = $email;
+    }
+}
+-------------------------------------------------------------------------------------
+public function boot(): void
+    {
+        view()->composer(['dashboard', 'user.profile'], function ($view) {
+            dd($view);
+            $view->with('user', new User("ariyan", "ariyan@gmail.com"));
+        });
+
+        view()->composer('user.profile', function ($view) {
+            dd($view);
+            $view->with('user', new User("ariyan", "ariyan@gmail.com"));
+        });
+
+        $user = new User('ariyan', 'ariyan@gmail.com');
+        View::share(["user" => $user]);
+    }
+-------------------------------------------------------------------------------------
+public function boot(): void
+    {
+        view()->composer(['dashboard', 'user.profile'], function ($view) {
+            dd($view);
+            $view->with('user', new User("ariyan", "ariyan@gmail.com"));
+        });
+        view()->composer(['dashboard', 'user.profile'], UserViewComposer::class);
+
+    }
+-------------------------------------------------------------------------------------
+public function compose(View $view)
+    {
+//        dd($view);
+        $view->with('user', new User("ariyan", "ariyan@gmail.com"));
+
+
+    }
+-------------------------------------------------------------------------------------
+<div>
+    {{$user->username}}
+    {{$status}}
+    {{$color}}
+</div>
+-------------------------------------------------------------------------------------
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<h1>{{$user->username}}, Welcome to the Laravel Application</h1> //dashboard
+<p>This is a simple welcome page.</p>
+<p>Current Date and Time: {{ now() }}</p>
+<p>Laravel Version: {{ app()->version() }}</p>
+<p>PHP Version: {{ phpversion() }}</p>
+</body>
+</html>
+-------------------------------------------------------------------------------------
+<h1 class="text-center mt-5">Welcome to the Laravel Application</h1>//welcome
+
+<div class="text-center mt-3">
+    <a href="{{ url('/dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+</div>
+<div class="text-center mt-3">
+    <a href="{{ url('/profile') }}" class="btn btn-primary">Go to Profile</a>
+</div>
+<div class="text-center mt-3">
+    <a href="{{ url('/posts') }}" class="btn btn-primary">Go to Posts</a>
+</div>
+-------------------------------------------------------------------------------------
+Route::get('/profile', function () {
+    $user = new User('aotmick', 'aot@gmail.com');
+    return view('user.profile', ["user" => $user]);
+    return view('user.profile', compact('user'))->with('status', "active")->with('color', "red");
+    return view('user.profile');
+});
+
+Route::view('/dashboard', 'dashboard');
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+Route::view('/posts', 'create');
+=============================================================================================================
+=============================================================================================================
+Section 13: Welcome.blade
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<h1 class="text-center mt-5">Welcome to the Laravel Application</h1>
+
+@each('listItem', $datas, 'data',"empty")
+<br>
+<br>
+<br>
+@php
+    $boolean = false;
+@endphp
+@foreach($datas as $data)
+
+    @include("listItem")
+    @include("listItem",["extra"=>"This is an extra data."])
+    @includeIf("nav",["extra"=>"This is an extra data."])
+    @includeWhen($boolean,"listItem",["extra"=>"This is an extra data."])
+    @includeUnless($boolean,"listItem",["extra"=>"This is an extra data."])
+
+    @include("listItem",["data"=>$data])
+    @include("listItem",["data"=>$data, "extra"=>"This is an extra data."])
+    @include("listItem")
+    @include("listItem",["data"=>$data])
+@endforeach
+@php
+    $isActive = true;
+    $isNotActive = false;
+@endphp
+<style>
+    .blue {
+        color: blue;
+    }
+
+    .red {
+        color: red;
+    }
+</style>
+<div @class(["blue" => $isNotActive, "red" => $isActive])>
+    <p @style(["background: black" => $isActive])>
+        {{$username}}, Welcome to the View: Welcome Page.
+        hey students, this is a simple welcome page.
+    </p>
+
+</div>
+@foreach ($datas as $data)
+
+    @continue($data === 5)
+    {{$data}}
+    @break($data === 8)
+    {{$data}}
+
+@endforeach
+@for ($count = 1; $count <10; $count++)
+    <h3>Loop iteration: {{ $count }}</h3>
+@endfor
+
+@while($count<11)
+    {{$count++}}
+    <h3>Loop iteration: {{$count}}</h3>
+@endwhile
+
+@while ($count < 11)
+    @php
+        $count++;
+    @endphp
+    <h3>While loop iteration: {{ $count }}</h3>
+@endwhile
+
+@foreach($users as $user)
+    {{$user[0]}}
+
+@endforeach
+
+@forelse ($users as $user)
+    {{ $user[0] }}
+@empty
+    <h3>No items to loop.</h3>
+@endforelse
+
+
+@if($count===20)
+    <h3>the count is 20</h3>
+@else
+    <h3>the count is not 20</h3>
+@endif
+
+@unless($count===20)
+    <h3>the count is False</h3>
+@endunless
+
+@isset($count)
+    <h3>the count is set</h3>
+
+@endisset
+
+@empty($count)
+    <h3>the count is empty</h3>
+
+@endempty
+
+
+{{$username}}, Welcome to the View: Welcome Page.
+</body>
+</html>
+
+<div class="text-center mt-3">
+    <a href="{{ url('/dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+</div>
+<div class="text-center mt-3">
+    <a href="{{ url('/profile') }}" class="btn btn-primary">Go to Profile</a>
+</div>
+<div class="text-center mt-3">
+    <a href="{{ url('/posts') }}" class="btn btn-primary">Go to Posts</a>
+</div>
+-------------------------------------------------------------------------------------
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+
+Route::get('/', function () {
+    return view('welcome', ["username" => "ariyan hassan", "count" => 10,
+        "status" => "active", "email" => "aot@gmail.com"]);
+    $datas = [];
+
+    return view('welcome', ["datas" => $datas]);
+})->name("home");
+
+//[
+//    "users" => [
+//        "name" => ["ariyan", "hassan", "aot"]
+//    ]
+//]
+-------------------------------------------------------------------------------------
+listItems.blade
+
+<div @style(["font-weight: bold;"
+])>
+    <!-- The only way to do great work is to love what you do. - Steve Jobs -->
+    <li>{{$data}}</li>
+    <br>
+</div>
+
+
+<div>
+    <h1>Empty</h1>
+</div>
+
+
+<nav>
+    <a href="#" class="nav-link">Contact</a>
+</nav>
+-------------------------------------------------------------------------------------
+layouts\master.blade:
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Master</title>
+</head>
+<body>
+
+<div class="sidebar">
+    @yield('sidebar')
+    {{--    <ul>--}}
+    {{--        <li><a href="{{ url('/') }}">Home</a></li>--}}
+    {{--        <li><a href="{{ url('/profile') }}">Profile</a></li>--}}
+    {{--    </ul>--}}
+
+</div>
+@yield('content')
+</body>
+</html>
+-------------------------------------------------------------------------------------
+components\app-layout.blade:
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{$title}}</title>
+</head>
+<body>
+{{--{{$content}}--}}
+{{--{{$slot}}--}}
+</body>
+</html>
+=============================================================================================================
+=============================================================================================================
+Section-15:
+
+web.php:
+
+
+<?php
+
+use App\Http\Controllers\PostsController;
+use Illuminate\Support\Facades\Route;
+
+
+Route::get('/', function () {
+    $type = "submit";
+    return view('welcome', compact('type'));
+})->name("home");
+
+Route::get('/posts', [PostsController::class, 'index'])->name("posts.index");
+
+Route::get('/profile', function () {
+    return view('profile');
+});
+-------------------------------------------------------------------------------------
+posts/index.blade:
+
+
+@extends('layouts.master')
+
+
+@section("content")
+    <x-dynamic-component :component="$componentName"></x-dynamic-component>
+
+
+    <x-modal-component modalTitle="Modal 1" buttonColor="danger" modalColor="info" modalTextColor="light">
+        <x-slot name="buttonText">
+            Option
+        </x-slot>
+        <x-slot:buttonText>
+            Option
+        </x-slot>
+        @slot("buttonText")
+            Option
+        @endslot
+    </x-modal-component>
+
+
+    <x-modal-component modalTitle="Modal 2" buttonColor="success" modalColor="danger" modalTextColor="primary">
+        <x-slot name="buttonText">
+            Close
+        </x-slot>
+
+    </x-modal-component>
+
+
+
+    <x-modal-component>
+
+        @slot("buttonText")
+            Exit
+        @endslot
+    </x-modal-component>
+    <x-modal-component>Submit</x-modal-component>
+    <x-modal-component>User</x-modal-component>
+
+@endsection
+-------------------------------------------------------------------------------------
+welcome.blade:
+
+
+@extends("layouts.master")
+
+@section("sidebar")
+    the sidebar content
+@endsection
+
+@section('content')
+
+    <h1>Welcome to the Laravel Application</h1>
+    <br>
+    <br>
+    <a href="{{ url('/profile') }}">View Profile</a>
+    <br>
+    <br>
+    <a href="{{ route('posts.index') }}">View Posts</a>
+    <br>
+    <x-link>The best way to take care of the future is to take care of the present moment. - Thich Nhat Hanh</x-link>
+
+    {{$type}}
+    {{$slot}}
+    {!! $slot !!}
+    <x-modal-component></x-modal-component>
+    <x-button-component :$type class="down"></x-button-component>
+    <x-button-component :type="$type">
+        Submit
+        Submit
+    </x-button-component>
+@endsection
+-------------------------------------------------------------------------------------
+PostsController:
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class PostsController extends Controller
+{
+    public function index(Request $request)
+    {
+        $recordCreated = false;
+        $componentName = null;
+
+        if ($recordCreated) {
+            $componentName = 'success';
+        } else {
+            $componentName = 'error';
+        }
+
+        return view('posts.index', compact('componentName'));
+    }
+
+
+    public function update(Request $request, string $id)
+    {
+        return "Updating post: # " . $id;
+    }
+
+    public function the_path(Request $request)
+    {
+//        if ($request->is('posts/path')) {
+//            return "TRUE";
+//        }
+        if ($request->routeIs('posts.path')) {
+            return "The route is posts.path";
+        }
+    }
+}
+-------------------------------------------------------------------------------------
+Profile.blade
+
+@props(['master'=>"I am the master component", 'type' => 'primary'])
+
+<div class="alert alert-{{$type}}" role="alert">
+    <div class="text-center">{{$master}}</div>
+    {{$slot}}
+</div>
+
+<div class="alert alert-{{$type}}" role="alert">
+    <div class="text-center">{{$master}}</div>
+    {{$slot}}
+</div>
+<x-master>
+    {{$master}}
+    What!
+    Profile Page
+</x-master>
+@section('content')
+    <h1>Profile</h1>
+@endsection
+-------------------------------------------------------------------------------------
+layouts\master.blade:
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Layout Master</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+
+</head>
+<body>
+
+
+<div class="sidebar">
+    @yield('sidebar')
+</div>
+
+
+<div class="container">
+    <div class="row">
+        <div class="mt-5 text-center">
+
+            @yield('content')
+        </div>
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
+</body>
+</html>
+-------------------------------------------------------------------------------------
+components\alert.blade:
+
+
+@props(['type'=>'success', 'message' => 'A simple primary alert—check it out!'])
+
+
+<div class="alert alert-{{$type}}" role="alert">
+    <div class="text-center">{{$message}}</div>
+    {{$slot}}
+</div>
+@aware(['master'])
+
+
+<div class="alert alert-{{$type}}" role="alert">
+    <div class="text-center">{{$master}}</div>
+    <div class="text-center">{{$message}}</div>
+    <div class="text-center">{{dd($attributes)}}</div>
+    <div class="text-center">{{dd($message)}}</div>
+    {{$slot}}
+    {!! $slot !!}
+</div>
+-------------------------------------------------------------------------------------
+components\button-component:
+
+
+<button type="{{$type}}">Submit</button>
+<button type="{{$type}}">{{dd($attributes)}}</button>
+<button
+
+    {{$attributes->class("up")}}
+>{{gettype($attributes)}}
+    {{$attributes->merge(["class"=>"up me","id"=>"right"])}}
+    type="{{$type}}">
+
+    @foreach($attributes as $attribute => $value)
+        {{$changeClass($value)}}
+        {{gettype($attribute)}}
+        {{$attribute}}
+        @if($value == "down")
+            {{"up"}}
+        @endif
+    @endforeach
+</button>
+-------------------------------------------------------------------------------------
+components\modal-component.blade.php:
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-{{$buttonColor}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    {{$buttonText}}
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-{{$modalColor}} text-{{$modalTextColor}}">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">{{$modalTitle}}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+-------------------------------------------------------------------------------------
+App\View\Components\ModalComponent.php:
+
+
+<?php
+
+namespace App\View\Components;
+
+use Closure;
+use Illuminate\Contracts\View\View;
+use Illuminate\View\Component;
+
+class ModalComponent extends Component
+{
+    public $color;
+    public $modalType;
+    public $buttonColor;
+
+    public $modalColor;
+    public $modalTextColor;
+    public $modalTitle;
+    public $modaSaveButtonColor;
+    public $modaDefaultButtonColor;
+
+    public function __construct($color = null, $modalType = null, $buttonColor = null,
+                                $modalColor = null, $modalTextColor = null, $modalTitle = null,
+                                $modaSaveButtonColor = null, $modaDefaultButtonColor = null)
+    public function __construct(public $modalType = null,
+                                public $buttonColor = null,
+                                public $modalColor = null, public $modalTextColor = null,
+                                public $modalTitle = null, public $modaSaveButtonColor = null,
+                                public $modaDefaultButtonColor = null)
+    {
+        $this->color = $color;
+    }
+
+    public function render(): View|Closure|string
+    {
+        return function (array $data) {
+            dd($data["slot"]);
+        };
+        return view('components.modal-component');
+    }
+}
+-------------------------------------------------------------------------------------
+App\View\Components\AppLayout:
+
+
+
+<?php
+
+namespace App\View\Components;
+
+use Closure;
+use Illuminate\Contracts\View\View;
+use Illuminate\View\Component;
+
+class AppLayout extends Component
+{
+    public $title;
+
+    /**
+     * Create a new component instance.
+     */
+    public function __construct($title = null)
+    {
+        $this->title = $title;
+    }
+
+    /**
+     * Get the view / contents that represent the component.
+     */
+    public function render(): View|Closure|string
+    {
+        return view('components.app-layout');
+    }
+}
+-------------------------------------------------------------------------------------
+App\View\Components\ButtonComponent:
+
+
+<?php
+
+namespace App\View\Components;
+
+use Illuminate\View\Component;
+
+class ButtonComponent extends Component
+{
+
+    public $type;
+
+    public function __construct($type = null)
+    {
+        $this->type = $type;
+    }
+
+    public function changeClass($class = null)
+    {
+        if ($class === "down") {
+
+            return "uplook";
+        }
+        return "somenewclass";
+
+    }
+
+    public function render()
+    {
+        return view('components.button-component');
+    }
+
+}
+-------------------------------------------------------------------------------------
+App\View\Components\Link:
+
+<?php
+
+namespace App\View\Components;
+
+use Closure;
+use Illuminate\Contracts\View\View;
+use Illuminate\View\Component;
+
+class Link extends Component
+{
+    /**
+     * Create a new component instance.
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Get the view / contents that represent the component.
+     */
+    public function render(): View|Closure|string
+    {
+        return $this->message = <<<'blade'
+<div>
+<!--     <h1> {{$slot}} </h1>-->
+</div>
+blade;
+    }
+}
+-------------------------------------------------------------------------------------
+components\master.blade.php:
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Component Master Layout</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+{{--{{$content}}--}}
+
+<div class="container">
+    <div class="row">
+        <div class="text-center">
+            {{$slot}}
+
+        </div>
+    </div>
+    @php
+        $message=   "A simple primary alert—check it out!";
+    @endphp
+
+    <div class="row ">
+        <x-alert :message="$message"></x-alert>
+    </div>
+</div>
+</body>
+</html>
+=============================================================================================================
+=============================================================================================================
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+=============================================================================================================
+=============================================================================================================
+=============================================================================================================
+=============================================================================================================
+=============================================================================================================
+=============================================================================================================
+
+
