@@ -1232,11 +1232,1916 @@ components\master.blade.php:
 </html>
 =============================================================================================================
 =============================================================================================================
+Section 16:
+
+web.php:
+
+
+<?php
+
+
+use App\Http\Controllers\SessionsController;
+use Illuminate\Support\Facades\Route;
+
+//use Illuminate\Routing\Route;
+
+Route::get('/', function (Request $request) {
+//    $request->session();
+    session(['secret' => "123my"]);
+//    $value = session('secret');
+
+    return view('welcome');
+})->name("home");
+
+Route::prefix("sessions")
+    ->controller(SessionsController::class)
+    ->group(function () {
+        Route::get('/', "index");
+        Route::get('/set', "set");
+        Route::get('/delete', "delete");
+    });
+
+
+Route::controller(SessionsController::class);
+-------------------------------------------------------------------------------------
+SessionsController.php:
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+
+//use Illuminate\Support\Facades\Request;
+//use http\Env\Request;
+//use http\Client\Request;
+
+use Illuminate\Http\Request;
+
+class SessionsController extends Controller
+{
+
+    public function index(Request $request)
+    {
+        return $request->session()->get("name");
+        return $request->session()->only(["name"]);
+        return session()->all();
+    }
+
+    public function set(Request $request, $key, $value)
+    {
+//        session([$key => $value]);
+//        return "Session key '{$key}' set to '{$value}'";
+        return session([$key => $value]);
+    }
+    public function set(Request $request)
+    {
+
+        $cars = ["Ultima", "BMW", "Carerra", "Lamborghini", "Ferrari"];
+        $newCollection = session(["cars"=>collect($cars)]);
+        session(["cars" => collect($cars)]);
+
+        return "Session set";
+        $query = $request->query();
+        session($query);
+        $request->session()->put($query);
+        session(["cars" => ["Ultima","BMW","Carerra", "Lamborghini", "Ferrari"]]);
+        session()->push("cars", "Testarossa");
+    }
+
+    public function delete(Request $request)
+    {
+
+        $car = session("cars")->search("Testarossa");
+        session("cars")->forget($car);
+        return $car;
+        session()->forget("cars");
+        return "Session deleted";
+
+
+        session()->put("cars", array_diff(session()->get("cars"), ["Testarossa"]));
+        foreach (session("cars") as $car) {
+            if($car === "Testarossa") {
+                session()->forget($car);
+            }
+            session()->forget("cars.$car");
+            echo $car;
+        }
+        session()->forget("name");
+
+        $cars=collect(session("cars"));
+    }
+}
+-------------------------------------------------------------------------------------
+CategoriesController:
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class CategoriesController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        return view('welcome');
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): string
+    {
+        return "Create";
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request): string
+    {
+        return "Store";
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id): string
+    {
+        return "Category: #" . $id;
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id): string
+    {
+        return "Category: #" . $id . " being edited";
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id): string
+    {
+        return "Category: #" . $id . " being updated with PUT";
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id): string
+    {
+        return "Category: #" . $id . " being deleted with DELETE METHOD";
+    }
+}
+-------------------------------------------------------------------------------------
+DashboardController.php:
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class DashboardController extends Controller
+{
+    public function index(Request $request): array|string|null
+    {
+        return view('page/dashboard');
+        return $request->query("id");
+    }
+
+
+    public function show(): array|string|null
+    {
+        return view('page/dashboard');
+        return view("welcome");
+    }
+}
+=============================================================================================================
+=============================================================================================================
+Section 17:
+
+Web.php:
+
+<?php
+
+use App\Http\Controllers\PostsController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function (Request $request) {
+    return view('posts.create');
+    return view('welcome');
+})->name("home");
+
+Route::resource("posts", PostsController::class);
+
+
+Route::prefix("posts")->controller(PostsController::class)->group(function () {});
+-------------------------------------------------------------------------------------
+PostsController:
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class PostsController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('posts/create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $inputs = $request->all();
+        $rules = [
+            'title' => 'required|max:50',
+            'body' => 'required',
+        ];
+        $messages = [
+            "required" => "C'mon,man....This :attribute 'Field' is required"
+           "required" => "This field is required"
+        ];
+        $validated = Validator::make($inputs, $rules, $messages)->validate();
+        $validated = Validator::make($request->all(), [
+            'title' => 'required|max:50',
+            'body' => 'required',
+        ])->validate();
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|max:50',
+            'body' => 'required',
+        ])->validate();
+        if ($validator->fails()) {
+            dd($validator);
+            return redirect()->route('posts.create')->withErrors($validator)
+                ->withInput();
+        }
+        $validated = $validator->validated();
+        dd($validated);
+
+        dd($request->validated());
+        $request->old("title");
+        $validatedData = $request->validate([
+            'title' => 'required|max:50',
+            'body' => 'required',
+        ]);
+
+        dd($validatedData);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+}
+-------------------------------------------------------------------------------------
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class PostFormRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'title' => 'required|max:50',
+            'body' => 'required',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'Yo..Title is required',
+            'title.max' => 'Title must be less than 50 characters',
+            'body.required' => 'Hmm..Body is required',
+        ];
+    }
+}
+=============================================================================================================
+=============================================================================================================
+Section 18+19+20+21:
+
+\routes\web.php:
+
+<?php
+
+use App\Http\Controllers\UsersController;
+use App\Models\Post;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+
+//Route::get('/users', [UsersController::class, 'index']);
+Route::get('/', function (Request $request) {
+
+    $post = new Post;
+    $post->title = "My First Post";
+    $post->body = "This is the body of my MASTERPIECE... man!! ,bow!!.";
+    $post->save();
+
+    return "POST CREATED SUCCESSFULLY";
+//    return view('welcome');
+
+
+//    $users = DB::table('users')->where('id', 2)->get();
+//    dd($users);
+
+//    DB::insert('insert into users (name,email,password) values (?, ?,?)', ['Aotmick Hassan', "has@gmail.com", "123"]);
+
+//    $users = DB::select('select * from users where id=?', [2]);
+//    dd($users);
+
+//    $newPassword = Hash::make('newpd123');
+//    $result = DB::update("update users set password='$newPassword',
+//        created_at=CURRENT_TIMESTAMP,updated_at=CURRENT_DATE where id=?", [2]);
+//    dd($result);
+//    $users = DB::update('update users set name=? where id=?', ['Aotmick Hassan', 2]);
+
+//    $delete = DB::delete('delete from users where id=?', [1]);
+//    dd($delete);
+
+})->name("home");
+
+Route::post("/create/dummy", [UsersController::class, "create_dummy"])->name("users.create.dummy");
+Route::delete("/delete/dummy", [UsersController::class, "delete_dummy"])->name("users.delete.dummy");
+Route::resource('users', UsersController::class);
+
+
+//Route::resource('users', UsersController::class);
+-------------------------------------------------------------------------------------
+\App\Http\Controllers\UsersController.php:
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\UsersStoreRequest;
+use App\Http\Requests\UsersUpdateRequest;
+use Carbon\Carbon;
+use Faker\Factory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+class UsersController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+//        $users = DB::table("users")->select('name')->orderByDesc("name")->first();
+//        $users = DB::table("users")->select('name')->orderBy("name", "asc")->get();
+//        $users = DB::table("users")->orderBy("email", "desc")->get();
+//        $users = DB::table("users")->whereIn("id", [3, 5, 6])->get();
+//        $users = DB::table("users")->groupBy("id")->having("id", ">", 6)->get();
+//        $users = DB::table("users")->where("id", ">", 6)->get();
+//        $users = DB::table("users")->select('name')->orderByDesc("name")->get();
+//        $users = DB::table("users")->distinct()->get();
+//        $query = DB::'table("users")->select("email");
+//        $users = $query->addSelect("id")->get();
+//        $users = DB::select("select * from users order by id asc limit 10 offset 10");
+//        $users = DB::select("select * from users where id>10 order by id asc limit 10 ");
+//        $users = DB::table("users")->simplePaginate(10);
+//        $users = DB::table("users")->orderBy("id")->cursorPaginate(10);
+//        dd($users);
+//        dd($users->total());
+//        $users = DB::table("users")->get();
+//        $users = DB::table("users")->paginate(10)
+//            ->withPath("/admin/users/index")->appends(["name" => "Ariyan"])->withQueryString();
+
+        $users = DB::table("users")->paginate(10);
+        return view('users/index', compact('users'));
+
+
+//        DB::table('users')->insert([
+//            'name' => 'Aotmick Khan',
+//            'email' => "aotmick@gmail.com",
+//            'password' => Hash::make('mypd1234'),
+//        ]);
+
+//        $user = DB::table('users')->get();
+//        dd($user);
+//        DB::table('users')->where('id', 1)->update([]);
+
+
+//        $update = DB::table('users')->where('id', 1)
+//            ->update([
+////                "password" => Hash::make("newpd4321")
+//                "created_at" => Carbon::now(),
+//                "updated_at" => Carbon::now()->toDateTimeString()
+//            ]);
+//        dd($update);
+
+
+//        DB::table('users')->insert([
+//            'name' => 'Ariyan',
+//            'email' => "ari@ymail.com",
+//            'password' => Hash::make('arpd1234'),
+//        ]);
+//        DB::table('users')->where('id', 19)->delete();
+
+
+//        DB::table("users")->truncate();
+
+
+//        $users = DB::table('users')->get();
+//        return view('users.index', ['users' => $users]);
+
+
+//        $users = Storage::json("public/users.json");
+//        $users = DB::table('users')->get();
+//        $time = Carbon::now();
+//        foreach ($users as $user) {
+//            echo "<br>";
+//            echo $user->created_at;
+//            echo "<br>";
+//            echo $user->name . "<br>";
+//            echo Carbon::parse($user->created_at)->diffForHumans();
+//            DB::table('users')->insert([
+//                "name" => $user['name'],
+//                "email" => $user['email'],
+//                "password" => Hash::make($user['email']),
+//                "created_at" => $time->addHour(),
+//                "updated_at" => $time->addMinutes(),
+//            ]);
+//        }
+//        return redirect("/");
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UsersUpdateRequest $request, string $id)
+    {
+//        dd($request->all());
+        $inputs = $request->all();
+        $allData = $request->safe()->merge($inputs)->except(["_token", "_method", "password_confirmation"]);
+
+        DB::table('users')->where('id', $id)
+            ->update($allData);
+
+        return redirect()->route('users.index', $id);
+//        return "WHAT man!";
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(UsersStoreRequest $request)
+    {
+        $inputs = $request->all();
+        $allData = $request->safe()->merge($inputs)->merge([
+            "created_at" => Carbon::now(),
+//            "updated_at" => now(),
+//            "password" => bcrypt($request->password)
+        ])
+            ->except(["_token", "_method", "password_confirmation"]);
+
+        DB::table('users')->insert($allData);
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $user = DB::table('users')->find($id);
+        return view("users.show", compact('user'));
+
+//        dd($user);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        DB::table('users')->where("id", $id)->delete();
+        return redirect()->back();
+
+//        $user = DB::table('users')->find($id);
+//        dd($user);
+//        return redirect()->route('users.index');
+        //return "Deleted Successfully!";
+    }
+
+    public function create_dummy(Request $request)
+    {
+        $faker = Factory::create();
+        for ($index = 0; $index < 100; $index++) {
+            DB::table('users')->insert([
+                'name' => $faker->name(),
+                'email' => $faker->email(),
+                'password' => Hash::make($faker->password(8)),
+                "email_verified_at" => now(),
+                "remember_token" => Str::random(10),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+        }
+        return redirect()->back();
+//        DB::table('users')->insert([
+//            'name' => $faker->name(),
+//            'email' => $faker->email(),
+//            'password' => Hash::make($faker->password(8)),
+//            "email_verified_at" => now(),
+//            "remember_token" => Str::random(10),
+//            'created_at' => Carbon::now(),
+//            'updated_at' => Carbon::now(),
+//
+//        ]);
+
+
+//        dd($request);
+
+//        $users = Storage::json('public/users.json');
+//        $time = Carbon::now();
+//
+//        foreach ($users as $user) {
+//            DB::table('users')->insertOrIgnore([
+//                'name' => $user['name'],
+//                'email' => $user['email'],
+//                'password' => Hash::make($user['email']),
+//                'created_at' => $time->addHour(),
+//                'updated_at' => $time->addRealHours(),
+//            ]);
+//        }
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('users/create');
+    }
+
+//    public function create_dummy()
+//    {
+//        DB::table('users')->insert([
+//            'name' => 'Aotmick Khan',
+//            'email' => "aotmick@gmail.com",
+//            'password' => Hash::make('mypd1234'),
+//        ]);
+//    }
+
+    public function delete_dummy(Request $request)
+    {
+        DB::table("users")->truncate();
+        return redirect()->back();
+    }
+}
+-------------------------------------------------------------------------------------
+App\Http\Requests\UpdatePostRequest.php:
+
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdatePostRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            //
+        ];
+    }
+}
+-------------------------------------------------------------------------------------
+StorePostRequest:
+
+
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StorePostRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            //
+        ];
+    }
+}
+-------------------------------------------------------------------------------------
+UsersStoreRequest.php:
+
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
+
+class UsersStoreRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|regex:/^[\pL\s\-]+$/u|min:5|max:50',
+            'email' => 'required|unique:users|email:rfc,dns',
+            'password' => ['required', 'confirmed', Password::defaults()],
+            "password_confirmation" => 'required',
+            "created_at" => 'nullable',
+//            "created_at" => 'required|date_format:Y-m-d H:i:s',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+//                'name.required' => 'The name field is required.',
+//                'name.regex' => 'The name may only contain letters, spaces, and hyphens.',
+//                'email.required' => 'The email field is required.',
+//                'email.unique' => 'The email has already been taken.',
+//                'password.required' => 'The password field is required.',
+//                'password.confirmed' => 'The password confirmation does not match.',
+//                'password_confirmation.required' => 'The password confirmation field is required.',
+            'created_at' => 'This created at date field can not be blanked.',
+        ];
+    }
+
+}
+-------------------------------------------------------------------------------------
+UsersUpdateRequest:
+
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
+
+class UsersUpdateRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|regex:/^[\pL\s\-]+$/u|min:5|max:50',
+            'email' => 'required|email:rfc,dns',
+            'password' => ['required', 'confirmed', Password::defaults()],
+//            'password' => 'required|confirmed',
+//        "password_confirmation" => 'required',
+        ];
+    }
+}
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+App\Models\User.php:
+
+
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+}
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+\resources\views\layouts\app.blade.php:
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>@yield("title")</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+</head>
+<body>
+
+@include("partials.nav")
+
+
+<div class="container">
+    <div class="row">
+        @yield('content')
+    </div>
+</div>
+
+{{--@vite("resources/js/app.js")--}}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
+{{--<footer class="fixed-bottom">--}}
+<footer>
+    <div class="text-center p-3 bg-light">
+        © 2025 Copyright:
+        <a class="text-dark fw-bold" href="https://mdbootstrap.com/">MDBootstrap.com</a>
+    </div>
+</footer>
+
+@yield("scripts")
+</body>
+</html>
+-------------------------------------------------------------------------------------
+\resources\views\partials\pagination.blade.php:
+
+@if ($paginator->hasPages())
+    <nav class="d-flex justify-items-center justify-content-between">
+        <div class="d-flex justify-content-between flex-fill d-sm-none">
+            <ul class="pagination">
+                {{-- Previous Page Link --}}
+                @if ($paginator->onFirstPage())
+                    <li class="page-item disabled" aria-disabled="true">
+                        <span class="page-link">@lang('pagination.previous')</span>
+                    </li>
+                @else
+                    <li class="page-item">
+                        <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">@lang('pagination.previous')</a>
+                    </li>
+                @endif
+
+                {{-- Next Page Link --}}
+                @if ($paginator->hasMorePages())
+                    <li class="page-item">
+                        <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">@lang('pagination.next')</a>
+                    </li>
+                @else
+                    <li class="page-item disabled" aria-disabled="true">
+                        <span class="page-link">@lang('pagination.next')</span>
+                    </li>
+                @endif
+            </ul>
+        </div>
+
+        <div class="d-none flex-sm-fill d-sm-flex align-items-sm-center justify-content-sm-between">
+            <div>
+                <p class="small text-muted">
+                    {!! __('Showing') !!}
+                    <span class="fw-semibold">{{ $paginator->firstItem() }}</span>
+                    {!! __('to') !!}
+                    <span class="fw-semibold">{{ $paginator->lastItem() }}</span>
+                    {!! __('of') !!}
+                    <span class="fw-semibold">{{ $paginator->total() }}</span>
+                    {!! __('results') !!}
+                </p>
+            </div>
+
+            <div>
+                <ul class="pagination">
+                    {{-- Previous Page Link --}}
+                    @if ($paginator->onFirstPage())
+                        <li class="page-item disabled" aria-disabled="true" aria-label="@lang('pagination.previous')">
+                            <span class="page-link" aria-hidden="true">&lsaquo;</span>
+                        </li>
+                    @else
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="@lang('pagination.previous')">&lsaquo;</a>
+                        </li>
+                    @endif
+
+                    {{-- Pagination Elements --}}
+                    @foreach ($elements as $element)
+                        {{-- "Three Dots" Separator --}}
+                        @if (is_string($element))
+                            <li class="page-item disabled" aria-disabled="true"><span class="page-link">{{ $element }}</span></li>
+                        @endif
+
+                        {{-- Array Of Links --}}
+                        @if (is_array($element))
+                            @foreach ($element as $page => $url)
+                                @if ($page == $paginator->currentPage())
+                                    <li class="page-item active" aria-current="page"><span class="page-link">{{ $page }}</span></li>
+                                @else
+                                    <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                @endif
+                            @endforeach
+                        @endif
+                    @endforeach
+
+                    {{-- Next Page Link --}}
+                    @if ($paginator->hasMorePages())
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="@lang('pagination.next')">&rsaquo;</a>
+                        </li>
+                    @else
+                        <li class="page-item disabled" aria-disabled="true" aria-label="@lang('pagination.next')">
+                            <span class="page-link" aria-hidden="true">&rsaquo;</span>
+                        </li>
+                    @endif
+                </ul>
+            </div>
+        </div>
+    </nav>
+@endif
+-------------------------------------------------------------------------------------
+\resources\views\partials\nav.blade.php:
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{{route("home")}}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{route("users.index")}}">Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{route("users.create")}}">Create Users</a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>
+-------------------------------------------------------------------------------------
+\resources\views\users\create.blade.php:
+
+@php use Carbon\Carbon; @endphp
+@extends("layouts.master")
+
+
+@section("title")
+    Create Users
+@endsection
+
+@section("content")
+
+    {{--    @if($errors->any())--}}
+    {{--        @foreach($errors->all() as $error)--}}
+    {{--            {{$error}}--}}
+    {{--        @endforeach--}}
+    {{--    @endif--}}
+
+    <div class="row mb-5">
+        <div class="col-6 offset-3">
+            <h1 class="text-center">Create User</h1>
+            <form method="post" action="{{route('users.store')}}">
+                @csrf
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input name="name" type="text" id="name" value="{{old("name")}}"
+                           class="form-control @error('name') is-invalid @enderror" aria-describedby="nameInput">
+                    @error('name')
+                    <div id="nameInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input name="email" type="email" value="{{old("email")}}"
+                           class="form-control @error('email') is-invalid @enderror" id="email"
+                           aria-describedby="emailInput">
+                    @error('email')
+                    <div id="emailInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input name="password" type="password" class="form-control @error('password') is-invalid @enderror"
+                           id="password" aria-describedby="passwordInput">
+                    @error('password')
+                    <div id="passwordInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="passwordConfirm" class="form-label">Confirm Password</label>
+                    <input name="password_confirmation" type="password"
+                           class="form-control @error('password_confirmation') is-invalid @enderror"
+                           id="passwordConfirm"
+                           aria-describedby="passwordConfirmInput">
+                    @error('password_confirmation')
+                    <div id="passwordConfirmInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                {{--                <div class="mb-3">--}}
+                {{--                    <label for="date" class="form-label">Date</label>--}}
+                {{--                    <input name="created_at" type="date"--}}
+                {{--                           class="form-control @error('created_at') is-invalid @enderror" id="date"--}}
+                {{--                           aria-describedby="dateInput">--}}
+                {{--                    @error('created_at')--}}
+                {{--                    <div id="dateInput" class="invalid-feedback">{{$message}}</div>--}}
+                {{--                    @enderror--}}
+                {{--                </div>--}}
+
+                <button type="submit" class="btn btn-primary">Create</button>
+            </form>
+        </div>
+    </div>
+@endsection
+
+
+@section("scripts")
+    <script>
+        console.log("users view");
+    </script>
+
+@endsection
+
+
+
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="name" class="form-label">Name</label>--}}
+{{--                    <input name="name" type="text" id="name"--}}
+{{--                           class="form-control @error("name") is-invalid @enderror" aria-describedby="nameInput">--}}
+{{--                    @error('name')--}}
+{{--                    <div id="nameInput" class="invalid-feedback">{{$message}}</div>--}}
+{{--                    @enderror--}}
+{{--                </div>--}}
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="email" class="form-label">Email</label>--}}
+{{--                    <input name="email" value="{{$user->email}}" type="text"--}}
+{{--                           class="form-control @error('email') is-invalid @enderror" id="email"--}}
+{{--                           aria-describedby="emailInput">--}}
+{{--                    @error('email')--}}
+{{--                    <div id="emailInput" class="invalid-feedback">{{$message}}</div>--}}
+{{--                    @enderror--}}
+{{--                </div>--}}
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="password" class="form-label">Password</label>--}}
+{{--                    <input name="password" type="password" class="form-control @error('password') is-invalid @enderror"--}}
+{{--                           value="{{$user->password}}" id="password" aria-describedby="passwordInput">--}}
+{{--                    @error('password')--}}
+{{--                    <div id="passwordInput" class="invalid-feedback">{{$message}}</div>--}}
+{{--                    @enderror--}}
+{{--                </div>--}}
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="passwordConfirm" class="form-label">Confirm Password</label>--}}
+{{--                    <input name="password_confirmation" type="password" value="{{$user->password}}"--}}
+{{--                           class="form-control @error('password_confirmation') is-invalid @enderror"--}}
+{{--                           id="passwordConfirm" aria-describedby="passwordConfirmInput">--}}
+{{--                    @error('password_confirmation')--}}
+{{--                    <div id="passwordConfirmInput" class="invalid-feedback">{{$message}}</div>--}}
+{{--                    @enderror--}}
+{{--                </div>--}}
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="date" class="form-label">Updated</label>--}}
+{{--                    <input name="updated_at" type="datetime-local"--}}
+{{--                           class="form-control @error('date') is-invalid @enderror"--}}
+{{--                           value="{{Carbon::parse($user->created_at)->format("Y-m-d H:i:s")}}" id="date"--}}
+{{--                           aria-describedby="dateInput">--}}
+{{--                    @error('date')--}}
+{{--                    <div id="dateInput" class="invalid-feedback">{{$message}}</div>--}}
+{{--                    @enderror--}}
+{{--                </div>--}}
+-------------------------------------------------------------------------------------
+\resources\views\users\index.blade.php:
+
+@php use Carbon\Carbon; @endphp
+@extends("layouts.master")
+
+
+@section("title")
+    Users Index
+@endsection
+
+@section("content")
+    <h1>Users Index</h1>
+    <div class="row">
+        <div class="col-sm-6">
+            <form method="post" action="{{route("users.create.dummy")}}" class="form-inline">
+                @csrf
+                <button type="submit" class="btn btn-primary">Create Dummy</button>
+            </form>
+        </div>
+        <div class="col-sm-6">
+            <form method="post" action="{{route("users.delete.dummy")}}" class="form-inline">
+                @csrf
+                @method("DELETE")
+                <button type="submit" class="btn btn-danger">Delete All</button>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="row mb-5">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Created Date</th>
+                <th scope="col">Edit</th>
+                <th scope="col">Delete</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @foreach($users as $user)
+                <tr>
+                    <th scope="row">{{$loop->index}}</th>
+                    <td>{{$user->id}}</td>
+                    <td>{{$user->name}}</td>
+                    <td>{{$user->email}}</td>
+                    <td>{{Carbon::parse($user->created_at)->diffForHumans()}}</td>
+                    <td>
+                        <a href="{{route("users.show",$user->id)}}" class="btn btn-info" target="_blank"
+                        >Edit</a>
+                    </td>
+                    <td>
+                        <form method="post" action="{{route("users.destroy",$user->id)}}">
+                            @csrf
+                            @method("DELETE")
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+    {{$users->links("partials.pagination")}}
+    {{--    {{$users->links("pagination::bootstrap-5")}}--}}
+    {{--    <div class="col-sm-6">--}}
+    {{--        <form method="post" action="{{route("users.delete.dummy")}}" class="form-inline">--}}
+    {{--            @csrf--}}
+    {{--            @method("DELETE")--}}
+    {{--            <button type="submit" class="btn btn-danger">Delete All</button>--}}
+    {{--        </form>--}}
+    {{--    </div>--}}
+@endsection
+
+
+@section("scripts")
+    <script>
+        console.log("users view");
+    </script>
+
+@endsection
+-------------------------------------------------------------------------------------
+\resources\views\users\show.blade.php:
+
+@php use Carbon\Carbon; @endphp
+@extends("layouts.master")
+
+
+@section("title")
+    Users Index
+@endsection
+
+@section("content")
+
+    {{--    {{$user->name}}--}}
+    <div class="row">
+        <div class="col-6 offset-3">
+            <h2 class="text-center">Update Users - "{{$user->name}}"</h2>
+            <form method="post" action="{{route("users.update",$user->id)}}">
+                @csrf
+                @method("PUT")
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input name="name" value="{{$user->name}}" type="text"
+                           class="form-control @error("name") is-invalid @enderror" id="name"
+                           aria-describedby="nameInput">
+                    @error('name')
+                    <div id="nameInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input name="email" value="{{$user->email}}" type="text"
+                           class="form-control @error('email') is-invalid @enderror" id="email"
+                           aria-describedby="emailInput">
+                    @error('email')
+                    <div id="emailInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input name="password" type="password" class="form-control @error('password') is-invalid @enderror"
+                           value="{{$user->password}}" id="password" aria-describedby="passwordInput">
+                    @error('password')
+                    <div id="passwordInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="passwordConfirm" class="form-label">Confirm Password</label>
+                    <input name="password_confirmation" type="password" value="{{$user->password}}"
+                           class="form-control @error('password_confirmation') is-invalid @enderror"
+                           id="passwordConfirm" aria-describedby="passwordConfirmInput">
+                    @error('password_confirmation')
+                    <div id="passwordConfirmInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="date" class="form-label">Updated</label>
+                    <input name="updated_at" type="datetime-local"
+                           class="form-control @error('date') is-invalid @enderror"
+                           value="{{Carbon::parse($user->created_at)->format("Y-m-d H:i:s")}}" id="date"
+                           aria-describedby="dateInput">
+                    @error('date')
+                    <div id="dateInput" class="invalid-feedback">{{$message}}</div>
+                    @enderror
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+@endsection
+
+
+@section("scripts")
+    <script>
+        console.log("users view");
+    </script>
+
+@endsection
+
+
+
+
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="email" class="form-label">Email</label>--}}
+{{--                    <input value="{{$user->email}}" type="email" class="form-control" id="email"--}}
+{{--                           aria-describedby="emailInput">--}}
+{{--                    <div id="emailInput" class="invalid-feedback"></div>--}}
+{{--                </div>--}}
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="password" class="form-label">Password</label>--}}
+{{--                    <input type="password" class="form-control" id="password" aria-describedby="passwordInput">--}}
+{{--                    <div id="passwordInput" class="invalid-feedback"></div>--}}
+{{--                </div>--}}
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="confirm_password" class="form-label">Confirm Password</label>--}}
+{{--                    <input type="password" class="form-control" id="passwordConfirm"--}}
+{{--                           aria-describedby="passwordConfirmInput">--}}
+{{--                    <div id="passwordConfirmInput" class="invalid-feedback"></div>--}}
+{{--                </div>--}}
+
+{{--                <div class="mb-3">--}}
+{{--                    <label for="date" class="form-label">Date</label>--}}
+{{--                    <input type="date" class="form-control" id="date" aria-describedby="dateInput">--}}
+{{--                    <div id="dateInput" class="invalid-feedback"></div>--}}
+{{--                </div>--}}
+
+-------------------------------------------------------------------------------------
+\resources\views\welcome.blade.php:
+
+@extends("layouts.master")
+
+@section("sidebar")
+    the sidebar content
+@endsection
+
+@section('content')
+    <h1 class="text-center mt-5">Hi, from Welcome page.</h1>
+
+@endsection
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+\storage\public\users.json:
+
+[
+    {
+        "id": 1,
+        "name": "Leanne Graham",
+        "username": "Bret",
+        "email": "Sincere@april.biz",
+        "address": {
+            "street": "Kulas Light",
+            "suite": "Apt. 556",
+            "city": "Gwenborough",
+            "zipcode": "92998-3874",
+            "geo": {
+                "lat": "-37.3159",
+                "lng": "81.1496"
+            }
+        },
+        "phone": "1-770-736-8031 x56442",
+        "website": "hildegard.org",
+        "company": {
+            "name": "Romaguera-Crona",
+            "catchPhrase": "Multi-layered client-server neural-net",
+            "bs": "harness real-time e-markets"
+        }
+    },
+    {
+        "id": 2,
+        "name": "Ervin Howell",
+        "username": "Antonette",
+        "email": "Shanna@melissa.tv",
+        "address": {
+            "street": "Victor Plains",
+            "suite": "Suite 879",
+            "city": "Wisokyburgh",
+            "zipcode": "90566-7771",
+            "geo": {
+                "lat": "-43.9509",
+                "lng": "-34.4618"
+            }
+        },
+        "phone": "010-692-6593 x09125",
+        "website": "anastasia.net",
+        "company": {
+            "name": "Deckow-Crist",
+            "catchPhrase": "Proactive didactic contingency",
+            "bs": "synergize scalable supply-chains"
+        }
+    },
+    {
+        "id": 3,
+        "name": "Clementine Bauch",
+        "username": "Samantha",
+        "email": "Nathan@yesenia.net",
+        "address": {
+            "street": "Douglas Extension",
+            "suite": "Suite 847",
+            "city": "McKenziehaven",
+            "zipcode": "59590-4157",
+            "geo": {
+                "lat": "-68.6102",
+                "lng": "-47.0653"
+            }
+        },
+        "phone": "1-463-123-4447",
+        "website": "ramiro.info",
+        "company": {
+            "name": "Romaguera-Jacobson",
+            "catchPhrase": "Face to face bifurcated interface",
+            "bs": "e-enable strategic applications"
+        }
+    },
+    {
+        "id": 4,
+        "name": "Patricia Lebsack",
+        "username": "Karianne",
+        "email": "Julianne.OConner@kory.org",
+        "address": {
+            "street": "Hoeger Mall",
+            "suite": "Apt. 692",
+            "city": "South Elvis",
+            "zipcode": "53919-4257",
+            "geo": {
+                "lat": "29.4572",
+                "lng": "-164.2990"
+            }
+        },
+        "phone": "493-170-9623 x156",
+        "website": "kale.biz",
+        "company": {
+            "name": "Robel-Corkery",
+            "catchPhrase": "Multi-tiered zero tolerance productivity",
+            "bs": "transition cutting-edge web services"
+        }
+    },
+    {
+        "id": 5,
+        "name": "Chelsey Dietrich",
+        "username": "Kamren",
+        "email": "Lucio_Hettinger@annie.ca",
+        "address": {
+            "street": "Skiles Walks",
+            "suite": "Suite 351",
+            "city": "Roscoeview",
+            "zipcode": "33263",
+            "geo": {
+                "lat": "-31.8129",
+                "lng": "62.5342"
+            }
+        },
+        "phone": "(254)954-1289",
+        "website": "demarco.info",
+        "company": {
+            "name": "Keebler LLC",
+            "catchPhrase": "User-centric fault-tolerant solution",
+            "bs": "revolutionize end-to-end systems"
+        }
+    },
+    {
+        "id": 6,
+        "name": "Mrs. Dennis Schulist",
+        "username": "Leopoldo_Corkery",
+        "email": "Karley_Dach@jasper.info",
+        "address": {
+            "street": "Norberto Crossing",
+            "suite": "Apt. 950",
+            "city": "South Christy",
+            "zipcode": "23505-1337",
+            "geo": {
+                "lat": "-71.4197",
+                "lng": "71.7478"
+            }
+        },
+        "phone": "1-477-935-8478 x6430",
+        "website": "ola.org",
+        "company": {
+            "name": "Considine-Lockman",
+            "catchPhrase": "Synchronised bottom-line interface",
+            "bs": "e-enable innovative applications"
+        }
+    },
+    {
+        "id": 7,
+        "name": "Kurtis Weissnat",
+        "username": "Elwyn.Skiles",
+        "email": "Telly.Hoeger@billy.biz",
+        "address": {
+            "street": "Rex Trail",
+            "suite": "Suite 280",
+            "city": "Howemouth",
+            "zipcode": "58804-1099",
+            "geo": {
+                "lat": "24.8918",
+                "lng": "21.8984"
+            }
+        },
+        "phone": "210.067.6132",
+        "website": "elvis.io",
+        "company": {
+            "name": "Johns Group",
+            "catchPhrase": "Configurable multimedia task-force",
+            "bs": "generate enterprise e-tailers"
+        }
+    },
+    {
+        "id": 8,
+        "name": "Nicholas Runolfsdottir V",
+        "username": "Maxime_Nienow",
+        "email": "Sherwood@rosamond.me",
+        "address": {
+            "street": "Ellsworth Summit",
+            "suite": "Suite 729",
+            "city": "Aliyaview",
+            "zipcode": "45169",
+            "geo": {
+                "lat": "-14.3990",
+                "lng": "-120.7677"
+            }
+        },
+        "phone": "586.493.6943 x140",
+        "website": "jacynthe.com",
+        "company": {
+            "name": "Abernathy Group",
+            "catchPhrase": "Implemented secondary concept",
+            "bs": "e-enable extensible e-tailers"
+        }
+    },
+    {
+        "id": 9,
+        "name": "Glenna Reichert",
+        "username": "Delphine",
+        "email": "Chaim_McDermott@dana.io",
+        "address": {
+            "street": "Dayna Park",
+            "suite": "Suite 449",
+            "city": "Bartholomebury",
+            "zipcode": "76495-3109",
+            "geo": {
+                "lat": "24.6463",
+                "lng": "-168.8889"
+            }
+        },
+        "phone": "(775)976-6794 x41206",
+        "website": "conrad.com",
+        "company": {
+            "name": "Yost and Sons",
+            "catchPhrase": "Switchable contextually-based project",
+            "bs": "aggregate real-time technologies"
+        }
+    },
+    {
+        "id": 10,
+        "name": "Clementina DuBuque",
+        "username": "Moriah.Stanton",
+        "email": "Rey.Padberg@karina.biz",
+        "address": {
+            "street": "Kattie Turnpike",
+            "suite": "Suite 198",
+            "city": "Lebsackbury",
+            "zipcode": "31428-2261",
+            "geo": {
+                "lat": "-38.2386",
+                "lng": "57.2232"
+            }
+        },
+        "phone": "024-648-3804",
+        "website": "ambrose.net",
+        "company": {
+            "name": "Hoeger LLC",
+            "catchPhrase": "Centralized empowering task-force",
+            "bs": "target end-to-end models"
+        }
+    }
+]
+-------------------------------------------------------------------------------------
+\app\Providers\AppServiceProvider.php:
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
+
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        Password::defaults(function () {
+            $theRules = Password::min(3)->mixedCase()->numbers()->symbols();
+            return $this->app->isProduction() ? $theRules->uncompromised() : $theRules;
+
+//            if($this->app->isProduction()){
+//                return $theRules->uncompromised();
+//            }else{
+//                return $theRules;
+//            }
+
+//            return Password::min(3)
+//                ->mixedCase()
+//                ->numbers()
+//                ->symbols()
+//                ->uncompromised();
+        });
+        Paginator::useBootstrapFive();
+
+    }
+//    }
+}
+-------------------------------------------------------------------------------------
+\Database\Factories\UserFactory.php:
+
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ */
+class UserFactory extends Factory
+{
+    /**
+     * The current password being used by the factory.
+     */
+    protected static ?string $password;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+        ];
+    }
+
+    /**
+     * Indicate that the model's email address should be unverified.
+     */
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
+    }
+}
+=============================================================================================================
+=============================================================================================================
+Section 22:
+
+<?php
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+
+//Route::get('/users', [UsersController::class, 'index']);
+Route::get('/', function (Request $request) {
+
+    // CREATE A NEW POST
+//    $post = new Post;
+//    $post->title = "My First Post";
+//    $post->body = "This is the body of my MASTERPIECE... man!! ,bow!!.";
+//    $post->save();
+//    return "POST CREATED SUCCESSFULLY";
+
+    // READ
+//    dd(Post::find(1));
+//    dd(Post::where('id', 1)->first());
+//    dd(Post::firstWhere('id', 1));
+//    dd(Post::where('id', 1)->firstOr(function () {
+//        return "Post not found";
+//    }));
+//    dd(Post::all());
+//    dd(User::all());
+//    dd(User::where());
+//    dd(User::select("email")->orderBy("id", "desc")->get());
+
+    // UPDATE
+//    $user = User::find(1);
+//    $user->name = "Ariyan Ahmed";
+//    $user->email = "ariyan@gmail.com";
+//    $user->where("id", 1)->update([
+//        "name" => "Ridoy Ahmed",
+//        "email" => "ahmed@ymail.com",
+//        "title" => "My First Post",
+//        "password" => "new123"
+//    ]);
+//    $user->save();
+//    return "POST UPDATED SUCCESSFULLY";
+
+    // DELETE
+//    $user = User::find(3)->delete();
+//    User::where("id", 1)->delete();
+//    return "POST DELETED SUCCESSFULLY";
+
+    // ELOQUENT RELATIONSHIP
+//    User::create([
+//        "id" => 1,
+//        "name" => "Aotmick Hassan",
+//        "email" => "aot@gmail.com",
+//        "password" => "12345678"
+//    ]);
+//    return "User created successfully with ID 1";
+
+    // BUILDING QUERIES ORM
+//    $user = User::orderBy("created_at", "desc")->first();
+//    $user = dd(User::orderBy("created_at", "desc")->first()->id);
+//    $user->name = "Mark Bill";
+//    $user->save();
+//    return "User saved successfully";
+
+
+    foreach (User::orderBy("created_at", "desc")->get() as $user) {
+//        echo $user->name . "<br>";
+        echo "<br>";
+        echo $user->name;
+    }
+//    return view('welcome');
+
+})->name("home");
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+\app\Models\Post.php:
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Post extends Model
+{
+    use HasFactory;
+}
+-------------------------------------------------------------------------------------
+\database\factories\PostFactory.php:
+
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Post>
+ */
+class PostFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            //
+        ];
+    }
+}
+-------------------------------------------------------------------------------------
+\database\seeders\PostSeeder.php:
+
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class PostSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        //
+    }
+}
+-------------------------------------------------------------------------------------
+\database\migrations\2025_07_03_032114_create_posts_table.php:
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable();
+            $table->string('title')->index();
+            $table->text('body');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('posts');
+    }
+};
+-------------------------------------------------------------------------------------
+\app\Models\User.php:
+
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+}
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+=============================================================================================================
+=============================================================================================================
+=============================================================================================================
+=============================================================================================================
 =============================================================================================================
 =============================================================================================================
 =============================================================================================================
