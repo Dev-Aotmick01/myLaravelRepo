@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+//        Model::unguard();
         Password::defaults(function () {
             $theRules = Password::min(3)->mixedCase()->numbers()->symbols();
             return $this->app->isProduction() ? $theRules->uncompromised() : $theRules;

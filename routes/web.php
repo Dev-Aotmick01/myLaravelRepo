@@ -1,19 +1,82 @@
 <?php
 
-//use App\Models\Comment;
-use App\Models\User;
+//use App\Models\Photo;
+//use App\Models\Post;
+use App\Models\Post;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-//use App\Models\Post;
 
 //use Illuminate\Support\Facades\Schema;
 
 
 Route::get('/', function (Request $request) {
 
-    $user = User::find(1);
-    $user->roles()->updateExistingPivot(3, ["user_id" => 6]);
+    $post = Post::find(1);
+    $tag = new Tag;
+    $tag->name = "PHP";
+//    $post->tags()->save($tag);
+
+//    echo $post->tags[0]->pivot->status;
+    echo $post->tags[0]->middle->created_at;
+//    echo $post->tags[0]->pivot->created_at;
+//    dd($post->tags[0]->pivot->created_at);
+//    dd($post->tags[0]->pivot);
+//    dd($post->tags[0]);
+//    dd($post->tags);
+
+
+//    Tag::find(3)->comments->each(function ($comment) {
+//        dd($comment->message);
+//        return $comment->message;
+//    });
+//    dd(Tag::find(1)->comments[0]);
+//    dd(Tag::find(1)->comments);
+//    dd(Tag::find(1)->posts);
+//    $comment = Comment::find(1);
+//    $tag->name = "Laravel";
+//    $comment->tags()->save($tag);
+
+
+//    $user = User::find(3);
+//    dd($user->oldestPhoto);
+//    dd($user->latestPhoto);
+//    dd($user->latestPhoto());
+//    dd($user);
+//    dd($user->photos->each(function ($photo) {
+//        dd($photo);
+//    }));
+//    dd($user->photos->each(function ($photo) {
+//        dd($photo->path);
+//    }));
+//    dd($user->photos->each(function ($photo) {
+//        dd($photo);
+//    }));
+//    dd($user->photos);
+//    dd($user->photo()->get());
+
+
+//    $user = User::find(1);
+//    $post = Post::find(1);
+//    $photo = Photo::find(1);
+//    dd($photo->photoable);
+//    dd($photo->photoable->title);
+//    dd($photo->photoable());
+
+//    $photo = new Photo(["path" => fake()->imageUrl("100", "50")]);
+//    $user->photo()->delete();
+//    $user->photo()->save($photo);
+//    $post->photo()->save($photo);
+//    $post->photo()->save($photo);
+
+//    dd($user->photo()->update(["path" => fake()->imageUrl("100", "50")]));
+//    dd($user->photo()->update(["path" => "new path"]));
+//    return "Photo Saved Successfully...Man!!";
+
+//    $comment = new Comment(["message" => "New Comment"]);
+//    dd(Post::find(1)->comments()->save($comment));
+//    $user = User::find(1);
+//    $user->roles()->updateExistingPivot(3, ["user_id" => 6]);
 
 
 //    Role::destroy([6, 7]);
@@ -175,9 +238,11 @@ Route::get('/', function (Request $request) {
 //  return "Truncate Done...!!";
 //    return "New1 Create Post Saving Done...man!!";
 //    return "Something Happening Done...man!!";
-    return "Role Deleting Done...man!!";
+//    return "Role Deleting Done...man!!";
 //    return "Creating Done...man!!";
 //    return "Deleted Done...man!!";
+//    return "Tag Saving Done...man!!";
+//    return "Photo Saving Done...man!!";
 })->name("home");
 
 

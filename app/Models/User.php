@@ -6,6 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -84,5 +87,24 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    public function photo(): MorphTo
+    {
+        return $this->morphTo(Photo::class, "photoable");
+    }
+
+    public function photos(): MorphMany
+    {
+        return $this->morphMany(Photo::class, "photoable");
+    }
+
+    public function latestPhoto(): MorphOne
+    {
+        return $this->morphOne(Photo::class, "photoable")->latestOfMany();
+    }
+
+    public function oldestPhoto(): MorphOne
+    {
+        return $this->morphOne(Photo::class, "photoable")->oldestOfMany();
+    }
 
 }
