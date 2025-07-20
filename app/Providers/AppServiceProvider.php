@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +22,25 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+//        Model::unguard();
+        Password::defaults(function () {
+            $theRules = Password::min(3)->mixedCase()->numbers()->symbols();
+            return $this->app->isProduction() ? $theRules->uncompromised() : $theRules;
+
+//            if($this->app->isProduction()){
+//                return $theRules->uncompromised();
+//            }else{
+//                return $theRules;
+//            }
+
+//            return Password::min(3)
+//                ->mixedCase()
+//                ->numbers()
+//                ->symbols()
+//                ->uncompromised();
+        });
+        Paginator::useBootstrapFive();
 
     }
+//    }
 }
