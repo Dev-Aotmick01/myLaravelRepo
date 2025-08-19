@@ -1,0 +1,139 @@
+…or create a new repository on the command line
+echo "# laravel_mailSending" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/Dev-Aotmick01/laravel_mailSending.git
+git push -u origin main
+
+…or push an existing repository from the command line
+git remote add origin https://github.com/Dev-Aotmick01/laravel_mailSending.git
+git branch -M main
+git push -u origin main
+===================================================================================================================================
+===================================================================================================================================
+Section - 34:
+
+routes\web.php:
+
+<?php
+
+use App\Http\Controllers\ProfileController;
+use App\Jobs\DeleteUser;
+use App\Jobs\TestJob;
+use App\Jobs\UpdataUserLastLogin;
+use App\Mail\UserTestEmail;
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
+
+//Route::get('/', function () {
+//    return view('welcome');
+//
+//    $user=auth()->loginUsingId(1);
+//    if (auth()->check()){
+//        UpdataUserLastLogin::dispatch(auth()->user())->onConnection("database2")->onQueue("default");
+//        DeleteUser::dispatch()->onConnection("database3")->onQueue("custom");
+//        TestJob::dispatch()->onConnection("database")->onQueue("default");
+//        TestJob::dispatch();
+//
+//
+//        UpdataUserLastLogin::dispatch(auth()->user())->onQueue("crazy");
+//        TestJob::dispatch()->onQueue("custom");
+//        DeleteUser::dispatch();
+//    }
+//    return "User Last Login Dispatched";
+//});
+Route::get('/', function () {
+    return view('HomeScreen/greeting');
+//    return view('HomeScreen/greeting')->name('home.greeting');
+})->name('home.greeting');
+
+Route::get('/testlogin', function () {
+
+    $user=auth()->loginUsingId(1);
+    if (auth()->check()){
+        UpdataUserLastLogin::dispatch(auth()->user());
+//        UpdataUserLastLogin::dispatch($user);
+//    dd($user);
+    }
+    return "User Last Login Dispatched";
+//    return view('welcome');
+});
+
+Route::get('/job', function () {
+    TestJob::dispatch();
+
+    return "Job Dispatched";
+});
+
+Route::get('/delete', function () {
+    DeleteUser::dispatch()->delay(now()->addSeconds(6));
+//    DeleteUser::dispatch()->delay(now()->addMinute());
+//    DeleteUser::dispatch();
+
+    return "DeleteUser Job Dispatched";
+});
+
+
+
+Route::get('/mail', function () {
+
+    $user = User::find(1);
+    Mail::to($user)->send(new UserTestEmail($user));
+//    $users= User::all();
+//    foreach ($users as $user) {
+//        Mail::to($user)->send(new UserTestEmail($user));
+//    }
+//    return view('welcome');
+    return "Mail Sent";
+});
+
+//Route::get('/dashboard', function () {
+//    return view('dashboard');
+//})->middleware(['auth', 'verified'])->name('dashboard');
+
+
+Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+//require __DIR__.'/auth.php';
+
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+===================================================================================================================================
+===================================================================================================================================
+\
+
+public function login(Request $request)
+//    {
+//        $user=User::find(1);
+//        if(Auth::attempt(['email'=>$request->email,'password'=>$request->password],$request->remember)){
+//            return redirect()->route('admin.index');
+//        }
+//        return redirect()->route('login');
+//        Auth::loginUsingId(1,true);
+//        Auth::login($user,true);
+//    }
+
+//    public function logout(Request $request)
+//    {
+//        Auth::logout();
+//        $request->session()->invalidate();
+//        $request->session()->regenerateToken();
+//        return redirect()->route('login');
+//    }
+===================================================================================================================================
+===================================================================================================================================
+===================================================================================================================================
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
